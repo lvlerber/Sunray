@@ -1,6 +1,9 @@
 #include "reset.h"
 #include "config.h"
-
+#ifdef ESP32
+#include <unistd.h>
+#include <HardwareSerial.h>
+#endif
 #if defined(__SAMD51__)
 
 

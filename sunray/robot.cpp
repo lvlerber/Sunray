@@ -151,11 +151,11 @@ unsigned long nextSaveTime = 0;
 bool wifiFound = false;
 char ssid[] = WIFI_SSID;      // your network SSID (name)
 char pass[] = WIFI_PASS;        // your network password
-WiFiEspServer server(80);
+// WiFiEspServer server(80);
 bool hasClient = false;
-WiFiEspClient client;
-WiFiEspClient espClient;
-PubSubClient mqttClient(espClient);
+// WiFiEspClient client;
+// WiFiEspClient espClient;
+// PubSubClient mqttClient(espClient);
 //int status = WL_IDLE_STATUS;     // the Wifi radio's status
 #ifdef ENABLE_NTRIP
   NTRIPClient ntrip;  // NTRIP tcp client (optional)
@@ -257,6 +257,7 @@ void startWIFI(){
 #ifdef __linux__
   WiFi.begin();
   wifiFound = true;
+#elif ESP32
 #else  
   CONSOLE.println("probing for ESP8266 (NOTE: will fail for ESP32)...");
   int status = WL_IDLE_STATUS;     // the Wifi radio's status
@@ -312,12 +313,12 @@ void startWIFI(){
   #endif    
   if (ENABLE_SERVER){
     //server.listenOnLocalhost();
-    server.begin();
+    // server.begin();
   }
   if (ENABLE_MQTT){
-    CONSOLE.println("MQTT: enabled");
-    mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
-    mqttClient.setCallback(mqttCallback);
+    // CONSOLE.println("MQTT: enabled");
+    // mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+    // mqttClient.setCallback(mqttCallback);
   }  
 }
 

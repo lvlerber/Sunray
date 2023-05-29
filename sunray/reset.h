@@ -16,8 +16,10 @@ ResetCause getResetCause();
 void logResetCause();
 int freeMemory();
 
+#ifndef ESP32
 #ifndef __linux__
   extern "C" char* sbrk(int incr);
+#endif
 #endif
 
 #endif

@@ -39,6 +39,14 @@
  */
 #include <Arduino.h>
 //#define MPU9250
+
+#define min(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
+
+
+
 #include "arduino_mpu9250_i2c.h"
 #include "arduino_mpu9250_clk.h"
 #define i2c_write(a, b, c, d) arduino_i2c_write(a, b, c, d)

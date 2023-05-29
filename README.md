@@ -1,4 +1,10 @@
-# Sunray
+# Sunray with Arduino replaced by ESP32-board
+
+This fork is about replacing the Arduino, the bluetooth and wifi (an esp32) and the communication to an ntrip caster by one single esp32 with a sim800 attached.
+
+The esp32, the gprs (sim800), an sd card expanders and a power supply are built on a board with arduino format and can be plugged in on pcb's 1.3 and 1.4 of Ardumower.
+
+The esp32 can switch off the rest of the pcb, including the ublox (which seems to cunsume a lot of energy)
 
 ## Download
 __WARNING__: Do not use the master version (via download button), that is 'code we work on' and it may be unstable - use one release version instead (click on 'releases' link below)!

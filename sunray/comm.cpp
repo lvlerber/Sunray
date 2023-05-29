@@ -49,7 +49,7 @@ unsigned long nextMQTTPublishTime = 0;
 unsigned long nextMQTTLoopTime = 0;
 
 // wifi client
-WiFiEspClient wifiClient;
+// WiFiEspClient wifiClient;
 unsigned long nextWifiClientCheckTime = 0;
 
 
@@ -917,6 +917,9 @@ void processBLE(){
 // a relay server allows to access the robot via the Internet by transferring data from app to robot and vice versa
 // client (app) --->  relay server  <--- client (robot)
 void processWifiRelayClient(){
+
+/*
+
   if (!wifiFound) return;
   if (!ENABLE_RELAY) return;
   if (!wifiClient.connected() || (wifiClient.available() == 0)){
@@ -978,6 +981,7 @@ void processWifiRelayClient(){
       }
     }
   }
+  */
 }
 
 
@@ -1236,6 +1240,7 @@ void outputConsole(){
       struct rusage r_usage;
       getrusage(RUSAGE_SELF,&r_usage);
       CONSOLE.print(r_usage.ru_maxrss);
+    #elif ESP32
     #else
       CONSOLE.print (" freem=");
       CONSOLE.print (freeMemory());  

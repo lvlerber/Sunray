@@ -100,7 +100,8 @@ float AmRobotDriver::getCpuTemperature(){
 
 // odometry signal change interrupt
 
-void OdometryMowISR(){			  
+void OdometryMowISR(){			 
+#ifdef  pinMotorMowRpm
   if (digitalRead(pinMotorMowRpm) == LOW) return;
   if (millis() < motorMowTicksTimeout) return; // eliminate spikes  
   #ifdef SUPER_SPIKE_ELIMINATOR
@@ -113,6 +114,9 @@ void OdometryMowISR(){
     motorMowTicksTimeout = millis() + 1;
   #endif
   odomTicksMow++;    
+#else 
+  return;
+#endif  
 }
 
 
@@ -123,7 +127,7 @@ void OdometryLeftISR(){
     unsigned long duration = millis() - motorLeftTransitionTime;
     if (duration > 5) duration = 0;
     motorLeftTransitionTime = millis();
-    motorLeftDurationMax = 0.7 * max(motorLeftDurationMax, ((float)duration));
+    motorLeftDurationMax = 0.7 * max((float)motorLeftDurationMax, ((float)duration));
     motorLeftTicksTimeout = millis() + motorLeftDurationMax;
   #else
     motorLeftTicksTimeout = millis() + 1;
@@ -138,7 +142,7 @@ void OdometryRightISR(){
     unsigned long duration = millis() - motorRightTransitionTime;
     if (duration > 5) duration = 0;  
     motorRightTransitionTime = millis();
-    motorRightDurationMax = 0.7 * max(motorRightDurationMax, ((float)duration));  
+    motorRightDurationMax = 0.7 * max((float)motorRightDurationMax, ((float)duration));  
     motorRightTicksTimeout = millis() + motorRightDurationMax;
   #else
     motorRightTicksTimeout = millis() + 1;
@@ -335,8 +339,10 @@ void AmMotorDriver::begin(){
   pinMode(pinMotorMowDir, OUTPUT);
   pinMode(pinMotorMowPWM, OUTPUT);
   pinMode(pinMotorMowSense, INPUT);
+  #ifdef pinMotorMowRpm
   pinMode(pinMotorMowRpm, INPUT);
   pinMode(pinMotorMowRpm, INPUT_PULLUP);  
+  #endif  
   pinMode(pinMotorMowEnable, OUTPUT);
   digitalWrite(pinMotorMowEnable, mowDriverChip.enableActive);
   pinMode(pinMotorMowFault, INPUT);
@@ -348,12 +354,15 @@ void AmMotorDriver::begin(){
   //pinMode(pinOdometryRight2, INPUT_PULLUP);
 
   // lift sensor
+  #ifdef pinLift
   pinMode(pinLift, INPUT_PULLUP);
-
+  #endif 
   // enable interrupts
   attachInterrupt(pinOdometryLeft, OdometryLeftISR, CHANGE);  
   attachInterrupt(pinOdometryRight, OdometryRightISR, CHANGE);  
+  #ifdef pinMotorMowRpm
   attachInterrupt(pinMotorMowRpm, OdometryMowISR, CHANGE);  
+  #endif 
     
 	//pinMan.setDebounce(pinOdometryLeft, 100);  // reject spikes shorter than usecs on pin
 	//pinMan.setDebounce(pinOdometryRight, 100);  // reject spikes shorter than usecs on pin	
@@ -675,26 +684,28 @@ bool AmStopButtonDriver::triggered(){
 
 // ------------------------------------------------------------------------------------
 
-
 void AmRainSensorDriver::begin(){
   nextControlTime = 0;
   isRaining = false;  
+  #ifdef pinRain
   pinMode(pinRain, INPUT);
+  #endif
 }
 
 void AmRainSensorDriver::run(){
   unsigned long t = millis();
   if (t < nextControlTime) return;
   nextControlTime = t + 100;                                       // save CPU resources by running at 10 Hz
+  #ifdef pinRain
   isRaining = (digitalRead(pinRain)== LOW);
+  #endif
 }
 
 bool AmRainSensorDriver::triggered(){
   return isRaining;
 }
-
+ 
 // ------------------------------------------------------------------------------------
-
 
 void AmLiftSensorDriver::begin(){
   nextControlTime = 0;
@@ -705,12 +716,16 @@ void AmLiftSensorDriver::run(){
   unsigned long t = millis();
   if (t < nextControlTime) return;
   nextControlTime = t + 100;                                       // save CPU resources by running at 10 Hz
+  #ifdef pinLift
   isLifted = (digitalRead(pinLift)== LOW);
+  #endif
 }
+
 
 bool AmLiftSensorDriver::triggered(){
   return isLifted;
 }
+
 
 // ------------------------------------------------------------------------------------
 

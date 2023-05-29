@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type='text/javascript'>
+            const ws = new WebSocket('ws://' + location.hostname + '/webserialws');
+            ws.onopen = function() {
+                document.getElementById('div1').insertAdjacentHTML('beforeend', 'Connection opened<br>');
+            }
+            ;
+            ws.onclose = function() {
+                document.getElementById('div1').insertAdjacentHTML('beforeend', 'Connection closed<br>');
+            }
+            ;
+            ws.onmessage = function(event) {
+                for (var i = 0; i < event.data.length; i++) {
+                    var c = event.data.charAt(i);
+                    if (c != '\n') {
+                        const p = document.createTextNode(c);
+                        document.getElementById('div1').appendChild(p);
+                    } else {
+                        const b = document.createElement('br');
+                        document.getElementById('div1').appendChild(b);
+                    }
+                }
+                document.getElementById('buttonsend').onclick = function() {
+                    ws.send(document.getElementById('cmd').value);
+                    document.getElementById('cmd').value = '';
+                }
+                ;
+            }
+            ;
+        </script>
+        <div>
+            <input id='cmd' type='text' placeholder='type message and press the Send Button' style='width:90%'/>
+            <input id='buttonsend' type='button' value='Send'/>
+        </div>
+    </head>
+    <body>
+        <div id='div1'/>
+    </body>
+</html>

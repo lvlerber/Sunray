@@ -12,6 +12,8 @@
   #define CONSOLE SerialUSB
 #elif __SAMD51__
   #define CONSOLE Serial
+#elif ESP32
+  #define CONSOLE Serial    
 #else
   #include <Console.h>
   #define CONSOLE Console
@@ -73,8 +75,12 @@ size_t SDSerial::write(uint8_t data){
     if (packetIdx == 99){
       packetBuffer[packetIdx] = '\0';            
       logFile = SD.open(logFileName, FILE_WRITE);
-      if (logFile){        
-        logFile.write(packetBuffer);              
+      if (logFile){  
+        #ifdef ESP32
+        logFile.print(packetBuffer);    
+        #else            
+        logFile.write(packetBuffer);        
+        #endif
         logFile.flush();
         logFile.close();            
       } else {

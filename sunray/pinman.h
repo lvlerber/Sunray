@@ -13,17 +13,32 @@
 #include <Arduino.h>
 
 
+extern "C" {
+
 #define PWM_FREQ_3900    0
 #define PWM_FREQ_29300   1
 
-
 class PinManager {
   public:  
+    uint8_t requestedResolution=12;
     void begin();
-	  void analogWrite( uint32_t ulPin, uint32_t ulValue, byte pwmFreq ) ;  
+    void analogWrite( uint32_t ulPin, uint32_t ulValue, byte pwmFreq ) ;  
 		void setDebounce(int pin, int usecs);  // reject spikes shorter than usecs on pin
+    void debug();
+  private:
+
 };
+    void pinModeX(uint8_t pin, uint8_t mode);
+    void attachInterruptX(uint8_t pin,  void (*intRoutine)(), int mode );
+    // void attachInterruptX(uint8_t pin,  std::function<void(void)> intRoutine, int mode );
+    int digitalReadX(uint8_t pin);
+    void digitalWriteX(uint8_t pin, uint8_t val);
+    uint16_t analogReadX(uint8_t pin);        
+	  void analogReadResolutionX(uint8_t bits);
+    void analogWriteX( uint8_t pin, int value ) ; 
 
+extern   PinManager  pinMan ;
+void expanderISR();
 
-
+}
 #endif 

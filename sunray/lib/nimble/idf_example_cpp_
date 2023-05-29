@@ -1,0 +1,151 @@
+
+/** NimBLE_Server Demo:
+ *
+ *  Demonstrates many of the available features of the NimBLE server library.
+ *  
+ *  Created: on March 22 2020
+ *      Author: H2zero
+ * 
+*/
+#include "NimBLEDevice.h"
+#include "NimBLELog.h"
+#include "host/ble_hs.h"
+#ifdef __cplusplus
+extern "C"
+{
+#include "dht11.h"
+}
+#endif
+
+#include <stdio.h>
+
+#define SERVICE_UUID "0000FFE0-0000-1000-8000-00805F9B34FB"
+#define CHARACTERISTIC_UUID "0000FFE1-0000-1000-8000-00805F9B34FB"
+#define DHT_PIN GPIO_NUM_13
+extern "C"
+{
+    void app_main(void);
+}
+
+static NimBLEServer *pServer;
+
+/** Handler class for characteristic actions */
+class CharacteristicCallbacks : public NimBLECharacteristicCallbacks
+{
+    void onRead(NimBLECharacteristic *pCharacteristic)
+    {
+        printf("%s : onRead(), value: %s\n",
+               pCharacteristic->getUUID().toString().c_str(),
+               pCharacteristic->getValue().c_str());
+    };
+
+    void onWrite(NimBLECharacteristic *pCharacteristic)
+    {
+        printf("%s : onWrite(), value: %s\n",
+               pCharacteristic->getUUID().toString().c_str(),
+               pCharacteristic->getValue().c_str());
+    };
+    /** Called before notification or indication is sent, 
+     *  the value can be changed here before sending if desired.
+     */
+    void onNotify(NimBLECharacteristic *pCharacteristic)
+    {
+        printf("Sending notification to clients\n");
+    };
+
+    /** The status returned in status is defined in NimBLECharacteristic.h.
+     *  The value returned in code is the NimBLE host return code.
+     */
+    void onStatus(NimBLECharacteristic *pCharacteristic, Status status, int code)
+    {
+        printf("Notification/Indication status code: %d , return code: %d, %s\n",
+               status,
+               code,
+               NimBLEUtils::returnCodeToString(code));
+    };
+};
+
+/** Define callback instances globally to use for multiple Charateristics \ Descriptors */
+
+static CharacteristicCallbacks chrCallbacks;
+
+void notifyTask(void *parameter)
+{
+    for (;;)
+    {
+        if (pServer->getConnectedCount())
+        {
+            NimBLEService *pSvc = pServer->getServiceByUUID(SERVICE_UUID);
+            if (pSvc)
+            {
+                NimBLECharacteristic *pChr = pSvc->getCharacteristic(CHARACTERISTIC_UUID);
+                if (pChr)
+                {
+                    char cstr[10];
+                    sprintf(cstr, "%i,%i", DHT11_read().temperature, DHT11_read().humidity);
+                    pChr->setValue(cstr);
+                    pChr->notify(true);
+                }
+            }
+        }
+        vTaskDelay(3000 / portTICK_PERIOD_MS);
+    }
+
+    vTaskDelete(NULL);
+}
+
+void app_main(void)
+{
+    DHT11_init(GPIO_NUM_4);
+    printf("Starting NimBLE Server\n");
+    esp_log_level_set("NimBLEServerCallbacks", ESP_LOG_VERBOSE);
+
+    /** sets device name */
+    NimBLEDevice::init("NimBLE");
+
+    /** Set the IO capabilities of the device, each option will trigger a different pairing method.
+     *  BLE_HS_IO_DISPLAY_ONLY    - Passkey pairing
+     *  BLE_HS_IO_DISPLAY_YESNO   - Numeric comparison pairing
+     *  BLE_HS_IO_NO_INPUT_OUTPUT - DEFAULT setting - just works pairing
+     */
+    //NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_ONLY); // use passkey
+    //NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_YESNO); //use numeric comparison
+
+    /** 2 different ways to set security - both calls achieve the same result.
+     *  no bonding, no man in the middle protection, secure connections.
+     *   
+     *  These are the default values, only shown here for demonstration.   
+     */
+    //NimBLEDevice::setSecurityAuth(false, false, true);
+    NimBLEDevice::setSecurityAuth(/*BLE_SM_PAIR_AUTHREQ_BOND | BLE_SM_PAIR_AUTHREQ_MITM |*/ BLE_SM_PAIR_AUTHREQ_SC);
+
+    pServer = NimBLEDevice::createServer();
+    // pServer->setCallbacks(new ServerCallbacks());
+
+    NimBLEService *pMyService = pServer->createService(SERVICE_UUID);
+    NimBLECharacteristic *pMyCharacteristic = pMyService->createCharacteristic(
+        CHARACTERISTIC_UUID,
+        NIMBLE_PROPERTY::READ |
+            NIMBLE_PROPERTY::WRITE |
+            NIMBLE_PROPERTY::NOTIFY);
+
+    pMyCharacteristic->setValue("Burger");
+    pMyCharacteristic->setCallbacks(&chrCallbacks);
+
+    /** Start the services when finished creating all Characteristics and Descriptors */
+    pMyService->start();
+
+    NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
+    /** Add the services to the advertisment data **/
+    pAdvertising->addServiceUUID(pMyService->getUUID());
+
+    /** If your device is battery powered you may consider setting scan response
+     *  to false as it will extend battery life at the expense of less data sent.
+     */
+    pAdvertising->setScanResponse(true);
+    pAdvertising->start();
+
+    printf("Advertising Started\n");
+
+    xTaskCreate(notifyTask, "notifyTask", 5000, NULL, 1, NULL);
+}
