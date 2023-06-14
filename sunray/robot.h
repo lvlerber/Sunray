@@ -29,6 +29,7 @@
 #ifdef __linux__
   #include <BridgeClient.h>
   #include "src/ntrip/ntripclient.h"
+#elif ESP32  
 #else
   #include "src/esp/WiFiEsp.h"
 #endif
@@ -93,8 +94,8 @@ extern bool stateInMotionLP; // robot is in angular or linear motion? (with moti
 
 extern unsigned long lastFixTime;
 
-extern WiFiEspClient client;
-extern WiFiEspServer server;
+// extern WiFiEspClient client;
+// extern WiFiEspServer server;
 extern PubSubClient mqttClient;
 extern bool hasClient;
 
@@ -142,7 +143,9 @@ extern int motorErrorCounter;
 
 extern Motor motor;
 extern Battery battery;
+#ifndef ESP32
 extern BLEConfig bleConfig;
+#endif
 extern Bumper bumper;
 extern Buzzer buzzer;
 extern Sonar sonar;

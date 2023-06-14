@@ -21,5 +21,5 @@ void processBLE();
 void mqttCallback(char* topic, byte* payload, unsigned int length);
 void cmdSwitchOffRobot();
 
-
+String processCmd(String cmd, bool checkCrc, bool decrypt);
 #endif

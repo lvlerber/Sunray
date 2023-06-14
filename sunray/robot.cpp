@@ -99,7 +99,10 @@ PinManager pinMan;
 #else 
   UBLOX gps;
 #endif 
+#ifndef ESP32
+// have to comment this out on esp32 because we have to reuse an existing Serial
 BLEConfig bleConfig;
+#endif
 Buzzer buzzer;
 Sonar sonar;
 Bumper bumper;
@@ -337,7 +340,9 @@ bool checkAT24C32() {
     if (Wire.endTransmission() == 0) {
       Wire.requestFrom(AT24C32_ADDRESS, 1);
       while (Wire.available() > 0 && r < 1) {        
-        b = (byte)Wire.read();        
+        b = (byte)Wire.read();   
+        CONSOLE.print("byte read from wire port 80 rtc module: 0x");    
+        CONSOLE.println(b); 
         r++;
       }
     }
@@ -523,7 +528,7 @@ void outputConfig(){
   #endif
 }
 
-
+extern bool ju;
 // robot start routine
 void start(){    
   pinMan.begin();         
@@ -532,7 +537,6 @@ void start(){
   CONSOLE.begin(CONSOLE_BAUDRATE);    
   buzzerDriver.begin();
   buzzer.begin();      
-    
   Wire.begin();      
   analogReadResolution(12);  // configure ADC 12 bit resolution
   unsigned long timeout = millis() + 2000;
@@ -573,19 +577,27 @@ void start(){
   CONSOLE.println(VER);          
   CONSOLE.print("compiled for: ");
   CONSOLE.println(BOARD);
-  
   robotDriver.begin();
   CONSOLE.print("robot id: ");
   String rid = "";
   robotDriver.getRobotID(rid);
   CONSOLE.println(rid);
   motorDriver.begin();
+  CONSOLE.println("na motordriver, stuur j om verder te gaan");
+  while (!ju){delay(100);}
+  ju=false;
   rainDriver.begin();
   liftDriver.begin();  
   battery.begin();      
   stopButton.begin();
+    CONSOLE.println("na stopbutton, stuur j om verder te gaan");
+  // while (!ju){delay(100);}
+  // ju=false;
+  delay(30000);
 
+#ifndef ESP32
   bleConfig.run();   
+#endif  
   //BLE.println(VER); is this needed? can confuse BLE modules if not connected?  
     
   rcmodel.begin();  

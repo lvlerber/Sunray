@@ -43,7 +43,7 @@ public:
 	/*
 	* Start the TCP server
 	*/
-	void begin();
+	void begin(uint16_t port=0);
 
 	virtual size_t write(uint8_t);
 	virtual size_t write(const uint8_t *buf, size_t size);

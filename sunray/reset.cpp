@@ -51,6 +51,8 @@ void logResetCause(){
 int freeMemory() {
 #ifdef __linux__
   return 1000000;
+#elif ESP32
+  return ESP.getFreeHeap();
 #else
   char top;
   return &top - reinterpret_cast<char*>(sbrk(0));

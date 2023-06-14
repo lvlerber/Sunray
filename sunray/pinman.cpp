@@ -190,6 +190,11 @@ void PinManager::begin()
     Serial.println("PinManager started");
   }
   giveWire();
+  // Manual assignment of channels to insure that buzzer has a different timer
+  ledcAttachPin(pinBuzzer, 8);
+  ledcAttachPin(pinMotorLeftPWM,2);
+  ledcAttachPin(pinMotorRightPWM,3);
+  ledcAttachPin(pinMotorMowPWM,4);    
 }
 int getChannel(uint8_t pin)
 {

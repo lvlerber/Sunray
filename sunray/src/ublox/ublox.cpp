@@ -81,8 +81,7 @@ bool UBLOX::configure(){
   CONSOLE.println("trying to connect to ublox f9p...");
   CONSOLE.println("NOTE: if GPS is not responding either set 'GPS_CONFIG=false' in config.h or perform GPS wire fix (see Wiki)");
   //configGPS.enableDebugging(CONSOLE, false);
-  
-  while(true){
+  for (int i=0; i<10;i++){
     CONSOLE.print("trying baud ");
     CONSOLE.println(_baud);        
     if (configGPS.begin(*_bus)) break;    

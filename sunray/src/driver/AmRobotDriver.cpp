@@ -13,6 +13,7 @@
 #include "../../pinman.h"
 #include "../../cpu.h"
 #include "../../ArduinoUniqueID.h"
+#include "esp32-hal-ledc.h"
 
 #if defined(_SAM3XA_)
   #include "../due/DueTimer.h"
@@ -731,7 +732,7 @@ bool AmLiftSensorDriver::triggered(){
 
 void AmBuzzerDriver::begin(){  
   pinMode(pinBuzzer, OUTPUT);                
-  digitalWrite(pinBuzzer, LOW);
+  analogWrite(pinBuzzer, LOW);
 }
 
 void AmBuzzerDriver::run(){  
@@ -745,10 +746,15 @@ void AmBuzzerDriver::noTone(){
     //::noTone(pinBuzzer);     
     zerotimer.enable(false);
     digitalWrite(pinBuzzer, LOW);
+  #elif ESP32
+    analogWrite(pinBuzzer, LOW);
   #endif     
 }
 
 void AmBuzzerDriver::tone(int freq){  
+
+
+
   #ifdef _SAM3XA_
     pinMode(pinBuzzer, OUTPUT);
     Timer1.attachInterrupt(toneHandler).setFrequency(freq).start();   
@@ -773,6 +779,8 @@ void AmBuzzerDriver::tone(int freq){
     zerotimer.setCompare(0, compare);
     zerotimer.setCallback(true, TC_CALLBACK_CC_CHANNEL0, toneHandler);
     zerotimer.enable(true);
+  #elif ESP32
+    int z=ledcWriteTone(analogGetChannel(pinBuzzer),freq);
   #endif     
 }
 

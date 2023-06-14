@@ -54,20 +54,21 @@ unsigned long nextWifiClientCheckTime = 0;
 
 
 // answer Bluetooth with CRC
-void cmdAnswer(String s){  
+String cmdAnswer(String s){  
   byte crc = 0;
   for (int i=0; i < s.length(); i++) crc += s[i];
   s += F(",0x");
   if (crc <= 0xF) s += F("0");
   s += String(crc, HEX);  
-  s += F("\r\n");             
-  //CONSOLE.print(s);  
-  cmdResponse = s;
+  s += F("\r\n");        
+  CONSOLE.print("Answered with: ")     ;
+  CONSOLE.println(s);  
+  return s;
 }
 
 // request tune param
-void cmdTuneParam(){
-  if (cmd.length()<6) return;  
+String cmdTuneParam(String cmd){
+  if (cmd.length()<6) return cmdAnswer("cmdlength <6"); 
   int counter = 0;
   int paramIdx = -1;
   int lastCommaIdx = 0;
@@ -104,12 +105,12 @@ void cmdTuneParam(){
     }    
   }      
   String s = F("CT");
-  cmdAnswer(s);
+  return cmdAnswer(s);
 }
 
 // request operation
-void cmdControl(){
-  if (cmd.length()<6) return;  
+String cmdControl(String cmd){
+  if (cmd.length()<6) return cmdAnswer("cmdlength <6"); 
   int counter = 0;
   int lastCommaIdx = 0;
   int mow=-1;          
@@ -167,12 +168,12 @@ void cmdControl(){
       setOperation(oldStateOp);    
     }  
   String s = F("C");
-  cmdAnswer(s);
+  return cmdAnswer(s);
 }
 
 // request motor 
-void cmdMotor(){
-  if (cmd.length()<6) return;  
+String cmdMotor(String cmd){
+  if (cmd.length()<6) return cmdAnswer("cmdlength <6"); 
   int counter = 0;
   int lastCommaIdx = 0;
   float linear=0;
@@ -198,32 +199,32 @@ void cmdMotor(){
   CONSOLE.println(angular);*/
   motor.setLinearAngularSpeed(linear, angular, false);
   String s = F("M");
-  cmdAnswer(s);
+  return cmdAnswer(s);
 }
 
-void cmdMotorTest(){
+String cmdMotorTest(){
   String s = F("E");
-  cmdAnswer(s);
-  motor.test();  
+  motor.test();    
+  return cmdAnswer(s);
 }
 
-void cmdMotorPlot(){
+String cmdMotorPlot(){
   String s = F("Q");
-  cmdAnswer(s);
-  motor.plot();  
+  motor.plot();    
+  return cmdAnswer(s);
 }
 
-void cmdSensorTest(){
+String cmdSensorTest(){
   String s = F("F");
-  cmdAnswer(s);
-  sensorTest();  
+  sensorTest();   
+  return cmdAnswer(s);
 }
 
 
 // request waypoint (perim,excl,dock,mow,free)
 // W,startidx,x,y,x,y,x,y,x,y,...
-void cmdWaypoint(){
-  if (cmd.length()<6) return;  
+String cmdWaypoint(String cmd){
+  if (cmd.length()<6) return cmdAnswer("cmdlength <6");  
   int counter = 0;
   int lastCommaIdx = 0;
   int widx=0;  
@@ -262,22 +263,23 @@ void cmdWaypoint(){
   CONSOLE.print(x);
   CONSOLE.print(",");
   CONSOLE.println(y);*/  
-  
-  String s = F("W,");
-  s += widx;              
-  cmdAnswer(s);       
-  
+
   if (!success){   
     stateSensor = SENS_MEM_OVERFLOW;
     setOperation(OP_ERROR);
   } 
+    
+  String s = F("W,");
+  s += widx;              
+  return cmdAnswer(s);       
+  
 }
 
 
 // request waypoints count
 // N,#peri,#excl,#dock,#mow,#free
-void cmdWayCount(){
-  if (cmd.length()<6) return;  
+String cmdWayCount(String cmd){
+  if (cmd.length()<6) return cmdAnswer("cmdlength <6");   
   int counter = 0;
   int lastCommaIdx = 0;
   for (int idx=0; idx < cmd.length(); idx++){
@@ -288,30 +290,30 @@ void cmdWayCount(){
       float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();      
       if (counter == 1){                            
-          if (!maps.setWayCount(WAY_PERIMETER, intValue)) return;                
+          if (!maps.setWayCount(WAY_PERIMETER, intValue)) return "";                
       } else if (counter == 2){
-          if (!maps.setWayCount(WAY_EXCLUSION, intValue)) return;                
+          if (!maps.setWayCount(WAY_EXCLUSION, intValue)) return "";                
       } else if (counter == 3){
-          if (!maps.setWayCount(WAY_DOCK, intValue)) return;                
+          if (!maps.setWayCount(WAY_DOCK, intValue)) return "";                
       } else if (counter == 4){
-          if (!maps.setWayCount(WAY_MOW, intValue)) return;                
+          if (!maps.setWayCount(WAY_MOW, intValue)) return "";                
       } else if (counter == 5){
-          if (!maps.setWayCount(WAY_FREE, intValue)) return;                
+          if (!maps.setWayCount(WAY_FREE, intValue)) return "";                
       } 
       counter++;
       lastCommaIdx = idx;
     }    
   }        
   String s = F("N");    
-  cmdAnswer(s);         
+  return cmdAnswer(s);         
   //maps.dump();
 }
 
 
 // request exclusion count
 // X,startidx,cnt,cnt,cnt,cnt,...
-void cmdExclusionCount(){
-  if (cmd.length()<6) return;  
+String cmdExclusionCount(String cmd){
+  if (cmd.length()<6) return cmdAnswer("cmdlength <6"); 
   int counter = 0;
   int lastCommaIdx = 0;
   int widx=0;  
@@ -325,7 +327,7 @@ void cmdExclusionCount(){
       if (counter == 1){                            
           widx = intValue;
       } else if (counter == 2){
-          if (!maps.setExclusionLength(widx, intValue)) return;          
+          if (!maps.setExclusionLength(widx, intValue)) return "";          
           widx++;
           counter = 1;
       } 
@@ -335,13 +337,13 @@ void cmdExclusionCount(){
   }        
   String s = F("X,");
   s += widx;              
-  cmdAnswer(s);         
+  return cmdAnswer(s);         
 }
 
 
 // request position mode
-void cmdPosMode(){
-  if (cmd.length()<6) return;  
+String cmdPosMode(String cmd){
+  if (cmd.length()<6) return cmdAnswer("cmdlength <6"); 
   int counter = 0;
   int lastCommaIdx = 0;  
   for (int idx=0; idx < cmd.length(); idx++){
@@ -369,11 +371,11 @@ void cmdPosMode(){
   CONSOLE.print(" lat=");
   CONSOLE.println(absolutePosSourceLat, 8);
   String s = F("P");
-  cmdAnswer(s);
+  return cmdAnswer(s);
 }
 
 // request version
-void cmdVersion(){  
+String cmdVersion(){  
 #ifdef ENABLE_PASS
   if (encryptMode == 0){
     encryptMode = 1;
@@ -416,41 +418,39 @@ void cmdVersion(){
   CONSOLE.print(encryptMode);
   CONSOLE.print(" encryptChallenge=");  
   CONSOLE.println(encryptChallenge);
-  cmdAnswer(s);
+  return cmdAnswer(s);
 }
 
 // request add obstacle
-void cmdObstacle(){
+String cmdObstacle(){
+  triggerObstacle();    
   String s = F("O");
-  cmdAnswer(s);  
-  triggerObstacle();  
+  return cmdAnswer(s);  
 }
 
 // request rain
-void cmdRain(){
-  String s = F("O2");
-  cmdAnswer(s);  
+String cmdRain(){
   activeOp->onRainTriggered();  
+  String s = F("O2");
+  return cmdAnswer(s);  
 }
 
 // request battery low
-void cmdBatteryLow(){
+String cmdBatteryLow(){
+  activeOp->onBatteryLowShouldDock();
   String s = F("O3");
-  cmdAnswer(s);  
-  activeOp->onBatteryLowShouldDock();  
+  return cmdAnswer(s);    
 }
 
 // perform pathfinder stress test
-void cmdStressTest(){
-  String s = F("Z");
-  cmdAnswer(s);  
+String cmdStressTest(){
   maps.stressTest();  
+  String s = F("Z");
+  return cmdAnswer(s);  
 }
 
 // perform hang test (watchdog should trigger and restart robot)
-void cmdTriggerWatchdog(){
-  String s = F("Y");
-  cmdAnswer(s);  
+String cmdTriggerWatchdog(){
   setOperation(OP_IDLE);
   #ifdef __linux__
     Process p;
@@ -458,37 +458,37 @@ void cmdTriggerWatchdog(){
   #else
     triggerWatchdog = true;  
   #endif
+  String s = F("Y");
+  return cmdAnswer(s);  
 }
 
 // perform hang test (watchdog should trigger)
-void cmdGNSSReboot(){
-  String s = F("Y2");
-  cmdAnswer(s);  
+String cmdGNSSReboot(){
   CONSOLE.println("GNNS reboot");
   gps.reboot();
+  String s = F("Y2");
+  return cmdAnswer(s);  
 }
 
 // switch-off robot
 void cmdSwitchOffRobot(){
-  String s = F("Y3");
-  cmdAnswer(s);  
   setOperation(OP_IDLE);
   battery.switchOff();
+  // String s = F("Y3");
+  // return cmdAnswer(s);  
 }
 
 // kidnap test (kidnap detection should trigger)
-void cmdKidnap(){
-  String s = F("K");
-  cmdAnswer(s);  
+String cmdKidnap(){
   CONSOLE.println("kidnapping robot - kidnap detection should trigger");
   stateX = 0;  
   stateY = 0;
+  String s = F("K");
+  return cmdAnswer(s);  
 }
 
 // toggle GPS solution (invalid,float,fix) for testing
-void cmdToggleGPSSolution(){
-  String s = F("G");
-  cmdAnswer(s);  
+String cmdToggleGPSSolution(){
   CONSOLE.println("toggle GPS solution");
   switch (gps.solution){
     case SOL_INVALID:  
@@ -511,11 +511,13 @@ void cmdToggleGPSSolution(){
       gps.solution = SOL_INVALID;
       break;
   }
+  String s = F("G");
+  return cmdAnswer(s);    
 }
 
 
 // request obstacles
-void cmdObstacles(){
+String cmdObstacles(){
   String s = F("S2,");
   s += maps.obstacles.numPolygons;
   for (int idx=0; idx < maps.obstacles.numPolygons; idx++){
@@ -529,11 +531,11 @@ void cmdObstacles(){
     }    
   }
 
-  cmdAnswer(s);
+  return cmdAnswer(s);
 }
 
 // request summary
-void cmdSummary(){
+String cmdSummary(){
   String s = F("S,");
   s += battery.batteryVoltage;  
   s += ",";
@@ -573,11 +575,11 @@ void cmdSummary(){
   s += maps.mapCRC;
   s += ",";
   s += lateralError;
-  cmdAnswer(s);  
+  return cmdAnswer(s);  
 }
 
 // request statistics
-void cmdStats(){
+String cmdStats(){
   String s = F("T,");
   s += statIdleDuration;  
   s += ",";
@@ -629,11 +631,11 @@ void cmdStats(){
   s += statMowGPSMotionTimeoutCounter;
   s += ",";
   s += statMowDurationMotorRecovery;
-  cmdAnswer(s);  
+  return cmdAnswer(s);  
 }
 
 // clear statistics
-void cmdClearStats(){
+String cmdClearStats(){
   String s = F("L");
   statMowDurationMotorRecovery = 0;
   statIdleDuration = 0;
@@ -658,11 +660,11 @@ void cmdClearStats(){
   statMowLiftCounter = 0;
   statMowGPSMotionTimeoutCounter = 0;
   statGPSJumps = 0;
-  cmdAnswer(s);  
+  return cmdAnswer(s);  
 }
 
 // scan WiFi networks
-void cmdWiFiScan(){
+String cmdWiFiScan(){
   CONSOLE.println("cmdWiFiScan");
   String s = F("B1,");  
   #ifdef __linux__    
@@ -675,14 +677,14 @@ void cmdWiFiScan(){
       if (i < numNetworks-1) s += ",";
   }
   #endif  
-  cmdAnswer(s);
+  return cmdAnswer(s);
 }
 
 // setup WiFi
-void cmdWiFiSetup(){
+String cmdWiFiSetup(){
   CONSOLE.println("cmdWiFiSetup");
   #ifdef __linux__
-    if (cmd.length()<6) return;  
+    if (cmd.length()<6) return cmdAnswer("cmdlength <6"); 
     int counter = 0;
     int lastCommaIdx = 0;    
     String ssid = "";
@@ -709,11 +711,11 @@ void cmdWiFiSetup(){
     WiFi.begin((char*)ssid.c_str(), (char*)pass.c_str());    
   #endif
   String s = F("B2");
-  cmdAnswer(s);
+  return cmdAnswer(s);
 }
 
 // request WiFi status
-void cmdWiFiStatus(){
+String cmdWiFiStatus(){
   String s = F("B3,");  
   #ifdef __linux__
   IPAddress addr = WiFi.localIP();
@@ -725,15 +727,15 @@ void cmdWiFiStatus(){
 	s += ".";
 	s += addr[3];		
   #endif  
-  cmdAnswer(s);
+  return cmdAnswer(s);
 }
 
 
 // request firmware update
-void cmdFirmwareUpdate(){
+String cmdFirmwareUpdate(){
   String s = F("U1");  
   #ifdef __linux__
-    if (cmd.length()<6) return;  
+    if (cmd.length()<6) return cmdAnswer("cmdlength <6"); 
     int counter = 0;
     int lastCommaIdx = 0;    
     String fileURL = "";
@@ -753,13 +755,22 @@ void cmdFirmwareUpdate(){
     Process p;
     p.runShellCommand("/home/pi/sunray_install/update.sh --apply --url " + fileURL + " &");
   #endif  
-  cmdAnswer(s);
+  return cmdAnswer(s);
 }
 
 // process request
-void processCmd(bool checkCrc, bool decrypt){
-  cmdResponse = "";      
-  if (cmd.length() < 4) return;
+// changed definition because of possibility that bleutooth, web and console are treated simultaneously
+// cmd and cmdResponse are now parameter and returned value
+
+String processCmd(String cmd, bool checkCrc, bool decrypt){
+  String cmdResponse = "niet gewijzigd";      
+  if (!cmd.startsWith("AT+"))
+    {
+      void WebConsoleInputHandler(uint8_t *data, size_t len);
+        WebConsoleInputHandler((uint8_t *)cmd.c_str(), strlen(cmd.c_str()));
+        return  "submitted";
+    }
+  if (cmd.length() < 4) return cmdResponse;
 #ifdef ENABLE_PASS
   if (decrypt){
     String s = cmd.substring(0,4);
@@ -788,9 +799,10 @@ void processCmd(bool checkCrc, bool decrypt){
     if (checkCrc){
       CONSOLE.print("COMM CRC ERROR: ");
       CONSOLE.println(cmd);
-      return;
+      return cmdResponse;
     }
   } else {
+    CONSOLE.println("p1---------------");
     for (int i=0; i < idx; i++) expectedCrc += cmd[i];  
     String s = cmd.substring(idx+1, idx+5);
     int crc = strtol(s.c_str(), NULL, 16);
@@ -798,71 +810,74 @@ void processCmd(bool checkCrc, bool decrypt){
     simFaultConnCounter++;
     if ((simFaultyConn) && (simFaultConnCounter % 10 == 0)) crcErr = true;
     if ((expectedCrc != crc) && (checkCrc)) crcErr = true;      
+    CONSOLE.print(cmd);
+        CONSOLE.println("----p2---------------");
     if (crcErr) {
       CONSOLE.print("CRC ERROR");
       CONSOLE.print(crc,HEX);
       CONSOLE.print(",");
       CONSOLE.print(expectedCrc,HEX);
       CONSOLE.println();
-      return;        
+      return "crc error";        
     } else {
       // remove CRC
       cmd = cmd.substring(0, idx);
-      //CONSOLE.println(cmd);
+      CONSOLE.println(cmd);
     }    
   }     
-  if (cmd[0] != 'A') return;
-  if (cmd[1] != 'T') return;
-  if (cmd[2] != '+') return;
+  if (cmd[0] != 'A') return "not A";
+  if (cmd[1] != 'T') return "not T";
+  if (cmd[2] != '+') return "not +";
   if (cmd[3] == 'S') {
     if (cmd.length() <= 4){
-      cmdSummary(); 
+      return cmdSummary(); 
     } else {
-      if (cmd[4] == '2') cmdObstacles();      
+      if (cmd[4] == '2') return cmdObstacles();      
     }
   }
-  if (cmd[3] == 'M') cmdMotor();
+  if (cmd[3] == 'M') return cmdMotor(cmd);
   if (cmd[3] == 'C'){ 
-    if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTuneParam();
-    else cmdControl();
+    if ((cmd.length() > 4) && (cmd[4] == 'T')) return cmdTuneParam(cmd);
+    else return cmdControl(cmd);
   }
-  if (cmd[3] == 'W') cmdWaypoint();
-  if (cmd[3] == 'N') cmdWayCount();
-  if (cmd[3] == 'X') cmdExclusionCount();
-  if (cmd[3] == 'V') cmdVersion();  
-  if (cmd[3] == 'P') cmdPosMode();  
-  if (cmd[3] == 'T') cmdStats();
-  if (cmd[3] == 'L') cmdClearStats();
-  if (cmd[3] == 'E') cmdMotorTest();  
-  if (cmd[3] == 'Q') cmdMotorPlot();  
+  if (cmd[3] == 'W') return cmdWaypoint(cmd);
+  if (cmd[3] == 'N') return cmdWayCount(cmd);
+  if (cmd[3] == 'X') return cmdExclusionCount(cmd);
+  if (cmd[3] == 'V') return cmdVersion();  
+  if (cmd[3] == 'P') return cmdPosMode(cmd);  
+  if (cmd[3] == 'T') return cmdStats();
+  if (cmd[3] == 'L') return cmdClearStats();
+  if (cmd[3] == 'E') return cmdMotorTest();  
+  if (cmd[3] == 'Q') return cmdMotorPlot();  
   if (cmd[3] == 'O'){
     if (cmd.length() <= 4){
-      cmdObstacle();   // for developers
+      return cmdObstacle();   // for developers
     } else {
-      if (cmd[4] == '2') cmdRain();   // for developers
-      if (cmd[4] == '3') cmdBatteryLow();   // for developers
+      if (cmd[4] == '2') return cmdRain();   // for developers
+      if (cmd[4] == '3') return cmdBatteryLow();   // for developers
     }    
   }   
-  if (cmd[3] == 'F') cmdSensorTest(); 
+  if (cmd[3] == 'F') return cmdSensorTest(); 
   if (cmd[3] == 'B') {
-    if (cmd[4] == '1') cmdWiFiScan();
-    if (cmd[4] == '2') cmdWiFiSetup();   
-    if (cmd[4] == '3') cmdWiFiStatus();     
+    if (cmd[4] == '1') return cmdWiFiScan();
+    if (cmd[4] == '2') return cmdWiFiSetup();   
+    if (cmd[4] == '3') return cmdWiFiStatus();     
   }
   if (cmd[3] == 'U'){ 
-    if ((cmd.length() > 4) && (cmd[4] == '1')) cmdFirmwareUpdate();
+    if ((cmd.length() > 4) && (cmd[4] == '1')) return cmdFirmwareUpdate();
   }
-  if (cmd[3] == 'G') cmdToggleGPSSolution();   // for developers
-  if (cmd[3] == 'K') cmdKidnap();   // for developers
-  if (cmd[3] == 'Z') cmdStressTest();   // for developers
+  if (cmd[3] == 'G') return cmdToggleGPSSolution();   // for developers
+  if (cmd[3] == 'K') return cmdKidnap();   // for developers
+  if (cmd[3] == 'Z') return cmdStressTest();   // for developers
   if (cmd[3] == 'Y') {
     if (cmd.length() <= 4){
-      cmdTriggerWatchdog();   // for developers
+      return cmdTriggerWatchdog();   // for developers
     } else {
-      if (cmd[4] == '2') cmdGNSSReboot();   // for developers
-      if (cmd[4] == '3') cmdSwitchOffRobot();   // for developers
+      if (cmd[4] == '2') return cmdGNSSReboot();   // for developers
+      if (cmd[4] == '3') { cmdSwitchOffRobot(); return  "Y3";} // for developers
     }
   }
+  return "not a command";
 }
 
 // process console input
@@ -875,7 +890,7 @@ void processConsole(){
       if ((ch == '\r') || (ch == '\n')) {        
         CONSOLE.print("CON:");
         CONSOLE.println(cmd);
-        processCmd(false, false);              
+        cmdResponse=processCmd(cmd,  false, false);              
         CONSOLE.print(cmdResponse);    
         cmd = "";
       } else if (cmd.length() < 500){
@@ -886,6 +901,8 @@ void processConsole(){
 }
   
 // process Bluetooth input
+#ifndef ESP32
+// in case of esp32 bluetooth runs in separate task. See bluetooth.cpp
 void processBLE(){
   char ch;   
   if (BLE.available()){
@@ -899,7 +916,7 @@ void processBLE(){
           CONSOLE.print("BLE:");     
           CONSOLE.println(cmd);        
         #endif
-        processCmd(true, true);              
+        cmdResponse= processCmd(cmd,  true, true);              
         BLE.print(cmdResponse);    
         cmd = "";
       } else if (cmd.length() < 500){
@@ -912,6 +929,7 @@ void processBLE(){
     }
   }  
 }  
+#endif
 
 // process WIFI input (relay client)
 // a relay server allows to access the robot via the Internet by transferring data from app to robot and vice versa
@@ -990,6 +1008,7 @@ void processWifiRelayClient(){
 // client (app) --->  server (robot)
 void processWifiAppServer()
 {
+#ifndef ESP32  
   if (!wifiFound) return;
   if (!ENABLE_SERVER) return;
   // listen for incoming clients    
@@ -1036,7 +1055,7 @@ void processWifiAppServer()
             CONSOLE.println(cmd);
           #endif
           if (client.connected()) {
-            processCmd(true,true);
+            cmdResponse=processCmd(cmd, true,true);
             client.print(
               "HTTP/1.1 200 OK\r\n"
               "Access-Control-Allow-Origin: *\r\n"              
@@ -1060,7 +1079,8 @@ void processWifiAppServer()
     // close the connection
     //client.stop();
     //CONSOLE.println("Client disconnected");
-  }                  
+  }    
+#endif              
 }
 
 
@@ -1191,12 +1211,14 @@ void processWifiMqttClient()
 
 void processComm(){
   processConsole();     
+  #ifndef ESP32
   processBLE();     
   if (!bleConnected){
     processWifiAppServer();
     processWifiRelayClient();
     processWifiMqttClient();
   }
+  #endif
   if (triggerWatchdog) {
     CONSOLE.println("hang test - watchdog should trigger and perform a reset");
     while (true){

@@ -2,11 +2,14 @@
 #include <Arduino.h>
 #include <../../config.h>
 #include <pinman.h>
-
+#include "SD.h"
+void listDir(fs::FS &fs, const char *dirname, uint8_t levels);
 extern String cmd;
 bool batterySwitch=false;
+    extern  int8_t pin_to_channel[SOC_GPIO_PIN_COUNT];
 void task_WebConsoleInputHandler(void *args)
 {
+
   int pin = 99;
   int val=-1;
   std::string scmd = cmd.c_str();
@@ -33,7 +36,7 @@ void task_WebConsoleInputHandler(void *args)
     analogWrite(pinMotorLeftPWM, 0);
     break;
   case pinBatterySwitch:
-    printf("Switching pinBatterySwitch O D\n");
+    printf("Switching pinBatterySwitch O D to %i\n",batterySwitch);
    pinMode(pinBatterySwitch, OUTPUT);
     digitalWrite(pinBatterySwitch, batterySwitch);
     batterySwitch= !batterySwitch;
@@ -126,11 +129,19 @@ void task_WebConsoleInputHandler(void *args)
     }
     break;
   case pinBuzzer:
+
+
+    // for (int i=0;i<40;i++){printf("  %i-%i",analogGetChannel(i),pin_to_channel[i]);}
+    
     printf("Test pinBuzzer O D\n");
-   pinMode(pinBuzzer, OUTPUT);
-    digitalWrite(pinBuzzer, 1);
-    delay(10000);
-    digitalWrite(pinBuzzer, 0);
+    printf("hangt aan channel:%i\n",analogGetChannel(pinBuzzer));
+    analogWrite(pinBuzzer, 0);
+    ledcSetup(8,4400,8);
+    ledcWrite(8,128);
+    delay(1000);
+    ledcWriteTone(analogGetChannel(pinBuzzer),2200);
+    delay(1000);    
+    analogWrite(pinBuzzer, 0);    
     break;
   case pinIrqExp:
     printf("Test pinIrqExp IU D\n");
@@ -339,7 +350,15 @@ void task_WebConsoleInputHandler(void *args)
     delay(200000);
     analogWrite(pinChargeRelay, 0);
     break;
-
+  case 100:
+    printf("Before initializing SD the cardtype is %i\n",SD.cardType());
+    listDir(SD,"/",0);
+    printf("is t gelukt %i",SD.begin(0,SPI,4000000U,"/sd",10,false));
+    printf("After initializing SD the cardtype is %i\n",SD.cardType());
+        listDir(SD,"/",0);
+    break;
+  case 101:
+    {extern bool ju; ju=true;break;}
   default:
     printf("There is no pin defined as %s\n", cmd.c_str());
     break;

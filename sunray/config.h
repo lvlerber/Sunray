@@ -65,7 +65,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // ------- Bluetooth4.0/BLE module -----------------------------------
 // see Wiki on how to install the BLE module and configure the jumpers:
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Bluetooth_BLE_UART_module
-#define ENABLE_PASS   1        // comment out to disable password authentication
+// #define ENABLE_PASS   1        // comment out to disable password authentication
 #define PASS          123456   // choose password for WiFi/BLE communication (NOTE: has to match the connection password in the App!)
 
 // -------- IMU sensor  ----------------------------------------------
@@ -403,9 +403,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // ----- other options --------------------------------------------
 
 // button control (turns on additional features via the POWER-ON button)
-#define BUTTON_CONTROL true      // additional features activated (press-and-hold button for specific beep count: 
+// #define BUTTON_CONTROL true      // additional features activated (press-and-hold button for specific beep count: 
                                  //  1 beep=stop, 6 beeps=start, 5 beeps=dock, 3 beeps=R/C mode ON/OFF, 9 beeps=shutdown, 12 beeps=WiFi WPS
-//#define BUTTON_CONTROL false   // additional features deactivated
+#define BUTTON_CONTROL false   // additional features deactivated
 
 //#define USE_TEMP_SENSOR true  // only activate if temp sensor (htu21d) connected
 #define USE_TEMP_SENSOR false  
@@ -487,8 +487,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
  #define GSM    Serial1
  #define GPS    Serial2  
  ///////////// temp sol
-    #define BLE Serial2
-    #define ROBOT Serial2
+    // #define BLE Serial2
 #endif
 
 
@@ -658,7 +657,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // #define pinLED 13                  // LED
 #define pinBuzzer 32               // Buzzer
 // #define pinTilt 35                 // Tilt sensor (required for TC-G158 board)
-#define pinButton 0               // do not use as on/off
+#define pinButton 48               // do not use as on/off
 #define pinDownload 0               // there is a button to put the esp in download mode at startup. pin0 is connected to P28 ReservedPin8
 #define pinBatteryVoltage 74       // battery voltage sensor
 #define pinBatterySwitch 4         // battery-OFF switch   

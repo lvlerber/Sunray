@@ -1,3 +1,4 @@
+#ifndef ESP32
 // Ardumower Sunray 
 // Copyright (c) 2013-2020 by Alexander Grau, Grau GmbH
 // Licensed GPLv3 for open source use
@@ -850,3 +851,4 @@ void SerialBuzzerDriver::tone(int freq){
 
 
 
+#endif

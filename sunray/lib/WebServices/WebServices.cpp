@@ -250,6 +250,7 @@ static void heap_info_get_handler(HTTPRequest *request, HTTPResponse *response)
 
 static void handleSdFs(HTTPRequest *request, HTTPResponse *response)
 {
+    
     if (check_auth(request, response) == ESP_FAIL)
     {
         response->setStatusCode(401);

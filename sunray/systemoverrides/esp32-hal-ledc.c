@@ -53,6 +53,7 @@
 */
 
 uint8_t channels_resolution[LEDC_CHANNELS] = {0};
+uint8_t pin_to_channel[SOC_GPIO_PIN_COUNT] = { [ 0 ... SOC_GPIO_PIN_COUNT-1 ] = -1 };
 
 uint32_t ledcSetup(uint8_t chan, uint32_t freq, uint8_t bit_num)
 {
@@ -92,6 +93,7 @@ void ledcWrite(uint8_t chan, uint32_t duty)
     if((duty == max_duty) && (max_duty != 1)){
         duty = max_duty + 1;
     }
+
     ledc_set_duty(group, channel, duty);
     ledc_update_duty(group, channel);
 }
@@ -177,6 +179,7 @@ void ledcAttachPin(uint8_t pin, uint8_t chan)
         .hpoint         = 0
     };
     ledc_channel_config(&ledc_channel);
+    pin_to_channel[pin] = chan;
 }
 
 void ledcDetachPin(uint8_t pin)
@@ -209,28 +212,33 @@ uint32_t ledcChangeFrequency(uint8_t chan, uint32_t freq, uint8_t bit_num)
     return ledc_get_freq(group,timer);
 }
 
-static int8_t pin_to_channel[SOC_GPIO_PIN_COUNT] = { 0 };
 static int cnt_channel = LEDC_CHANNELS;
 static uint8_t analog_resolution = 8;
 static int analog_frequency = 1000;
 void analogWrite(uint8_t pin, int value) {
-  // Use ledc hardware for internal pins
-  if (pin < SOC_GPIO_PIN_COUNT) {
-    if (pin_to_channel[pin] == 0) {
-      if (!cnt_channel) {
-          log_e("No more analogWrite channels available! You can have maximum %u", LEDC_CHANNELS);
-          return;
-      }
-      if(ledcSetup(cnt_channel - 1, analog_frequency, analog_resolution) == 0){
-          log_e("analogWrite setup failed (freq = %u, resolution = %u). Try setting different resolution or frequency");
-          return;
-      }
-      ledcAttachPin(pin, cnt_channel - 1);
-      pin_to_channel[pin] = cnt_channel--;
-
+    // Use ledc hardware for internal pins
+    if (pin < SOC_GPIO_PIN_COUNT) {
+        int8_t channel = -1;
+        if (pin_to_channel[pin] == -1) {
+            if (!cnt_channel) {
+                log_e("No more analogWrite channels available! You can have maximum %u", LEDC_CHANNELS);
+                return;
+            }
+            cnt_channel--;
+            channel = cnt_channel;
+        } else {
+            channel = analogGetChannel(pin);
+        }
+        log_v("GPIO %d - Using Channel %d, Value = %d", pin, channel, value);
+        if(ledcSetup(channel, analog_frequency, analog_resolution) == 0){
+            log_e("analogWrite setup failed (freq = %u, resolution = %u). Try setting different resolution or frequency");
+            return;
+        }
+        ledcAttachPin(pin, channel);
+        pin_to_channel[pin] = channel;
+        ledcWrite(channel, value);
     }  
-    ledcWrite(pin_to_channel[pin] - 1, value);
-  }
+
 #ifdef CONFIG_ESP32_EXPANDERS
     // if pin >= 40, it is on an expander
     else {       
@@ -243,7 +251,7 @@ void analogWrite(uint8_t pin, int value) {
 }
 
 int8_t analogGetChannel(uint8_t pin) {
-    return pin_to_channel[pin] - 1;
+    return pin_to_channel[pin];
 }
 
 void analogWriteFrequency(uint32_t freq) {
