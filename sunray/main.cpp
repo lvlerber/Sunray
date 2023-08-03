@@ -23,6 +23,7 @@
 #include <HTTPRequest.hpp>
 #include <HTTPResponse.hpp>
 #include <i2c.h>
+#include <version.h>
 
 // Required do define ResourceNodes
 // #include <ResourceNode.hpp>
@@ -147,7 +148,7 @@ void setup()
   listDir(SD, "/", 0);
   uint64_t cardSize = SD.cardSize() / (1024 * 1024);
   Serial.printf("SD Card Size: %lluMB\n", cardSize);
-  Serial.printf("Version 3\n");
+  Serial.println(VERSION);
   /**
    * Connect to Wifi
    */
