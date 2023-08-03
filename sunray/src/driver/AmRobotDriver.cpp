@@ -606,7 +606,7 @@ float AmBatteryDriver::getChargeCurrent(){
 }
 
 float AmBatteryDriver::getBatteryTemperature(){
-  #ifdef USE_TEMP_SENSOR
+  #if USE_TEMP_SENSOR
     // https://learn.sparkfun.com/tutorials/htu21d-humidity-sensor-hookup-guide
     return(myHumidity.readTemperature());
     //float humidity = myHumidity.readHumidity();                  

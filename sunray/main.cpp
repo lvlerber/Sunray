@@ -147,7 +147,7 @@ void setup()
   listDir(SD, "/", 0);
   uint64_t cardSize = SD.cardSize() / (1024 * 1024);
   Serial.printf("SD Card Size: %lluMB\n", cardSize);
-
+  Serial.printf("Version 3\n");
   /**
    * Connect to Wifi
    */
@@ -166,15 +166,30 @@ void setup()
   void startGPStest();
   digitalWrite(pinBatterySwitch,HIGH);
   // startGPStest();
- 
+ delay(50);
   // batteryDriver.begin();
   // pin 15 is pulled high by the bootstrapping esp32.  After boot it is free to use, but you need to reset it manually  
   analogWrite(pinMotorMowPWM,0);
 //  battery.begin();  
-Wire.begin();
+Wire.begin(-1,-1,400000);
   I2CScanner();
 // delay(30000);
-  // while (!ju) {delay(100);}
+  while (!ju)
+  {
+    CONSOLE.println(100000);
+    Wire.begin(-1, -1, 100000);
+    I2CScanner();
+
+    delay(100);
+    CONSOLE.println(400000);    
+    Wire.begin(-1, -1, 400000);
+    I2CScanner();
+    delay(100);
+        CONSOLE.println(1000000);
+          Wire.begin(-1, -1, 1000000);
+    I2CScanner();
+    delay(10000);
+    }
   ju=false;
   start();
 

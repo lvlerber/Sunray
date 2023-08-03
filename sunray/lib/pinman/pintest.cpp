@@ -5,6 +5,7 @@
 #include "SD.h"
 void listDir(fs::FS &fs, const char *dirname, uint8_t levels);
 extern String cmd;
+extern bool ju;
 bool batterySwitch=false;
     extern  int8_t pin_to_channel[SOC_GPIO_PIN_COUNT];
 void task_WebConsoleInputHandler(void *args)
@@ -358,7 +359,7 @@ void task_WebConsoleInputHandler(void *args)
         listDir(SD,"/",0);
     break;
   case 101:
-    {extern bool ju; ju=true;break;}
+    { ju=true;break;}
   default:
     printf("There is no pin defined as %s\n", cmd.c_str());
     break;

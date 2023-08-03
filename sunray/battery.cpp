@@ -170,7 +170,7 @@ void Battery::run(){
       if (switchOffAllowedUndervoltage)  batteryDriver.keepPowerOn(false);     
     } else if ((millis() >= switchOffTime) || (switchOffByOperator)) {
       DEBUGLN(F("SWITCHING OFF (idle timeout)"));              
-      buzzer.sound(SND_OVERCURRENT, true);
+      // buzzer.sound(SND_OVERCURRENT, true);
       if ((switchOffAllowedIdle) || (switchOffByOperator)) batteryDriver.keepPowerOn(false);
     } else batteryDriver.keepPowerOn(true);              
 
