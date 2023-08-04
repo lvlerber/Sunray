@@ -248,9 +248,9 @@ static void heap_info_get_handler(HTTPRequest *request, HTTPResponse *response)
     return;
 }
 
-static void handleSdFs(HTTPRequest *request, HTTPResponse *response)
+void handleSdFs(HTTPRequest *request, HTTPResponse *response)
 {
-    
+    Serial.printf("request handled by sdfs: %s",request->getRequestString().c_str());
     if (check_auth(request, response) == ESP_FAIL)
     {
         response->setStatusCode(401);
@@ -307,6 +307,12 @@ static void handleSdFs(HTTPRequest *request, HTTPResponse *response)
   }
     return;
 }
+
+//SD card file server handlers are located in other file 
+void handleSD(HTTPRequest * req, HTTPResponse * res);
+void handleFormUpload(HTTPRequest * req, HTTPResponse * res);
+void handleDelete(HTTPRequest * req, HTTPResponse * res);
+void handleNewDir(HTTPRequest *req, HTTPResponse *res);
 
 void printJson(JsonObject v)
 {
@@ -671,6 +677,7 @@ static void status_get_handler(HTTPRequest *request, HTTPResponse *response)
     return;
 }
 
+
 /*
 static esp_err_t wifi_scan_get_handler(httpd_req_t *req)
 {
@@ -753,7 +760,10 @@ void WebServices::begin(HTTPServer *server)
     // server->on("/core_dump", HTTP_GET, core_dump_get_handler);
     ResourceNode *HeapInfoGetNode = new ResourceNode("/heapinfo", "GET", &heap_info_get_handler);
     server->registerNode(HeapInfoGetNode);
-
+   ResourceNode *fileDeleteNode = new ResourceNode("/delete", "GET" ,&handleDelete);    
+    server->registerNode(fileDeleteNode);    
+   ResourceNode *fileCreateDirNode = new ResourceNode("/newdir", "GET" ,&handleNewDir);    
+    server->registerNode(fileCreateDirNode);
     // server->on("/heap_info", HTTP_GET, heap_info_get_handler);
 
     // server->on("/wifi/scan", HTTP_GET, wifi_scan_get_handler);
@@ -763,7 +773,15 @@ void WebServices::begin(HTTPServer *server)
     // });
     // server->serveStatic("/sd/", SD, "/");
     // server->serveStatic("/", SD, "/");
-    
+      // run handleUpload function when any file is uploaded
+    ResourceNode *UploadNode = new ResourceNode("/upload", "POST" ,&handleFormUpload);  
+    server->registerNode(UploadNode);    
+    ResourceNode *fileRootNode = new ResourceNode("/sd", "GET" ,&handleSD);    
+    server->registerNode(fileRootNode);
+    ResourceNode *fileServerNode = new ResourceNode("/sd/*", "GET" ,&handleSD);    
+    server->registerNode(fileServerNode);    
+    ResourceNode *fileServerNode2 = new ResourceNode("/sd/*/*", "GET" ,&handleSD);    
+    server->registerNode(fileServerNode2);    
     ResourceNode *sdfsNode = new ResourceNode("", "", &handleSdFs);
     server->setDefaultNode(sdfsNode);
     server->start();

@@ -177,18 +177,18 @@ Wire.begin(-1,-1,400000);
 // delay(30000);
   while (!ju)
   {
-    CONSOLE.println(100000);
-    Wire.begin(-1, -1, 100000);
-    I2CScanner();
+    // CONSOLE.println(100000);
+    // Wire.begin(-1, -1, 100000);
+    // I2CScanner();
 
-    delay(100);
-    CONSOLE.println(400000);    
-    Wire.begin(-1, -1, 400000);
-    I2CScanner();
-    delay(100);
-        CONSOLE.println(1000000);
-          Wire.begin(-1, -1, 1000000);
-    I2CScanner();
+    // delay(100);
+    // CONSOLE.println(400000);    
+    // Wire.begin(-1, -1, 400000);
+    // I2CScanner();
+    // delay(100);
+    //     CONSOLE.println(1000000);
+    //       Wire.begin(-1, -1, 1000000);
+    // I2CScanner();
     delay(10000);
     }
   ju=false;
